@@ -28,3 +28,7 @@ func closeConnection(c net.Conn) {
 		c.Close()
 	}
 }
+
+func checkBrightnessValue(b int) bool {
+	return b < 0 || b > 100
+}

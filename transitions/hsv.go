@@ -9,7 +9,6 @@ import (
 	"strconv"
 )
 
-
 func NewHSVTransition(hue int, saturation int, duration int, brightness int) string {
 	if hue < 0 || hue > 359 {
 		log.Fatalln("The color hue to transition to (0-359)")
@@ -32,5 +31,5 @@ func NewHSVTransition(hue int, saturation int, duration int, brightness int) str
 	}
 	value := yeelight.RGBToYeelight(rgb)
 
-	return fmt.Sprintf("%s,%s,%s,%s", strconv.Itoa(duration), strconv.Itoa(1), strconv.Itoa(value), strconv.Itoa(brightness))
+	return fmt.Sprintf("%s,1,%s,%s", strconv.Itoa(duration), strconv.Itoa(value), strconv.Itoa(brightness))
 }

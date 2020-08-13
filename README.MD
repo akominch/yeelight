@@ -27,7 +27,7 @@ import (
 
 func main() {
         config := yeelight.YeelightConfig{
-		Ip: "192.168.100.24",
+		Ip: "192.168.1.24",
 		Effect: yeelight.Smooth,
 	}
 	bulb := yeelight.New(config)

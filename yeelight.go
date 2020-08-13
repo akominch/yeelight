@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image/color"
 	"log"
 	"net"
 	"time"
@@ -27,7 +28,25 @@ type EffectType string
 
 const (
 	Smooth EffectType = "smooth"
-	Sudden EffectType = "sudden"
+	Sudden            = "sudden"
+)
+
+type LightType int
+
+const (
+	Main    LightType = 0
+	Ambient           = 1
+)
+
+type Mode int
+
+const (
+	Last      Mode = 0
+	Normal         = 1
+	RGB            = 2
+	HSV            = 3
+	ColorFlow      = 4
+	Moonlight      = 5
 )
 
 type (
@@ -131,25 +150,58 @@ func (y *Yeelight) Discover() (*YeelightParams, error) {
 }
 
 func (y *Yeelight) TurnOn() (*CommandResult, error) {
-	return y.ExecuteCommand("set_power", "on")
+	return y.ExecuteCommand("set_power", "on", y.effect)
+}
+
+func (y *Yeelight) TurnOnWithParams(mode Mode, duration int) (*CommandResult, error) {
+	return y.ExecuteCommand("set_power", "on", y.effect, duration, mode)
 }
 
 func (y *Yeelight) TurnOff() (*CommandResult, error) {
 	return y.ExecuteCommand("set_power", "off")
 }
 
-func (y *Yeelight) StartFlow(flow *Flow) (*CommandResult, error) {
+func (y *Yeelight) EnsureOn() {
 	res, err := y.GetProps([]string{"power"})
 	if err != nil {
-		return nil, err
+		log.Println("Error get bulb power status")
+		return
 	}
 	power := res.Result["power"]
 	if power != "on" {
-		_, err = y.TurnOn()
-		if err != nil {
-			return nil, err
-		}
+		_, _ = y.TurnOn()
 	}
+}
+
+func (y *Yeelight) SetBrightness(brightness int) (*CommandResult, error) {
+	if !checkBrightnessValue(brightness) {
+		log.Fatalln("The brightness value to set (1-100)")
+	}
+	y.EnsureOn()
+	return y.ExecuteCommand("set_bright", brightness, y.effect)
+}
+
+func (y *Yeelight) SetRGB(rgba color.RGBA) (*CommandResult, error) {
+	value := RGBToYeelight(rgba)
+	y.EnsureOn()
+	return y.ExecuteCommand("set_rgb", value, y.effect)
+}
+
+func (y *Yeelight) SetHSV(hue int, saturation int) (*CommandResult, error) {
+	y.EnsureOn()
+	return y.ExecuteCommand("set_rgb", hue, saturation, y.effect)
+}
+
+func (y *Yeelight) SetBrightnessWithDuration(brightness int, duration int) (*CommandResult, error) {
+	if !checkBrightnessValue(brightness) {
+		log.Fatalln("The brightness value to set (1-100)")
+	}
+	y.EnsureOn()
+	return y.ExecuteCommand("set_bright", brightness, y.effect, duration)
+}
+
+func (y *Yeelight) StartFlow(flow *Flow) (*CommandResult, error) {
+	y.EnsureOn()
 	params := flow.AsStartParams()
 	return y.ExecuteCommand("start_cf", params)
 }
@@ -172,6 +224,10 @@ func (y *Yeelight) GetProps(props []string) (*PropsResult, error) {
 	}
 
 	return &PropsResult{ID: res.ID, Error: res.Error, Result: propsMap}, nil
+}
+
+func (y *Yeelight) SetName(name string) (*CommandResult, error) {
+	return y.ExecuteCommand("set_name", name)
 }
 
 // Listen connects to device and listens for NOTIFICATION events
@@ -215,6 +271,3 @@ func (y *Yeelight) Listen() (<-chan *Notification, chan<- struct{}, error) {
 
 	return notifCh, done, nil
 }
-
-
-
