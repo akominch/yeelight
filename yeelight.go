@@ -150,7 +150,7 @@ func (y *Yeelight) Discover() (*YeelightParams, error) {
 }
 
 func (y *Yeelight) TurnOn() (*CommandResult, error) {
-	return y.ExecuteCommand("set_power", "on", y.effect)
+	return y.ExecuteCommand("set_power", "on")
 }
 
 func (y *Yeelight) TurnOnWithParams(mode Mode, duration int) (*CommandResult, error) {
@@ -161,16 +161,22 @@ func (y *Yeelight) TurnOff() (*CommandResult, error) {
 	return y.ExecuteCommand("set_power", "off")
 }
 
-func (y *Yeelight) EnsureOn() {
+func (y *Yeelight) EnsureOn() bool {
 	res, err := y.GetProps([]string{"power"})
 	if err != nil {
 		log.Println("Error get bulb power status")
-		return
+		return false
 	}
 	power := res.Result["power"]
 	if power != "on" {
-		_, _ = y.TurnOn()
+		_, err = y.TurnOn()
+		if err != nil {
+			return true
+		}
+		return false
 	}
+
+	return true
 }
 
 func (y *Yeelight) SetBrightness(brightness int) (*CommandResult, error) {
