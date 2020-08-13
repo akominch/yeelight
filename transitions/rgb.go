@@ -2,9 +2,9 @@ package transitions
 
 import (
 	"fmt"
-	"github.com/akominch/yeelight"
+	color2 "github.com/akominch/yeelight/color"
+	"github.com/akominch/yeelight/utils"
 	"image/color"
-	"log"
 	"strconv"
 )
 
@@ -14,15 +14,37 @@ var (
 	Green = color.RGBA{G: 255, A: 255}
 )
 
-func NewRGBTransition(color color.RGBA, duration int, brightness int) string {
-	if brightness < 0 || brightness > 100 {
-		log.Fatalln("The color saturation to transition to (0-100)")
-	}
-	if duration < 50 {
-		log.Fatalln("duration minimum 50")
-	}
+type RGB struct {
+	color color.RGBA
+	duration int
+	brightness int
+	mode int
+	yeelightValue int
+}
 
-	value := yeelight.RGBToYeelight(color)
+func NewRGBTransition(color color.RGBA, duration int, brightness int) *RGB {
+	value := color2.RGBToYeelight(color)
 
-	return fmt.Sprintf("%s,%s,%s,%s", strconv.Itoa(duration), strconv.Itoa(1), strconv.Itoa(value), strconv.Itoa(brightness))
+	return &RGB{
+		color:         color,
+		brightness:    utils.GetBrightnessValue(brightness),
+		duration:      utils.GetDurationValue(duration),
+		yeelightValue: value,
+		mode:          1,
+	}
+}
+
+func (t *RGB) AsYeelightParams() string {
+	return fmt.Sprintf("%s,%s,%s,%s", strconv.Itoa(t.duration), strconv.Itoa(t.mode), strconv.Itoa(t.yeelightValue), strconv.Itoa(t.brightness))
+}
+
+func (t *RGB) ChangeDuration(duration int) {
+	t.duration = utils.GetDurationValue(duration)
+}
+
+func (t *RGB) ChangeColor(color color.RGBA) {
+	value := color2.RGBToYeelight(color)
+
+	t.color = color
+	t.yeelightValue = value
 }

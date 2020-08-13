@@ -2,20 +2,26 @@ package transitions
 
 import (
 	"fmt"
-	"log"
+	"github.com/akominch/yeelight/utils"
 	"strconv"
 )
 
-func NewSleepTransition(duration int) string {
-	if duration < 50 {
-		log.Fatalln("duration minimum 50")
+type Sleep struct {
+	duration int
+	mode int
+}
+
+func NewSleepTransition(duration int) *Sleep {
+	return &Sleep{
+		duration: utils.GetDurationValue(duration),
+		mode:     7,
 	}
+}
 
-	mode := strconv.Itoa(7)
+func (t *Sleep) AsYeelightParams() string {
+	return fmt.Sprintf("%s,%s,1,2", strconv.Itoa(t.duration), strconv.Itoa(t.mode))
+}
 
-	// Ignored by Yeelight
-	value := strconv.Itoa(1)
-	brightness := strconv.Itoa(2)
-
-	return fmt.Sprintf("%s,%s,%s,%s", strconv.Itoa(duration), mode, value, brightness)
+func (t *Sleep) ChangeDuration(duration int) {
+	t.duration = utils.GetDurationValue(duration)
 }

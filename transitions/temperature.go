@@ -2,23 +2,30 @@ package transitions
 
 import (
 	"fmt"
-	"log"
+	"github.com/akominch/yeelight/utils"
 	"strconv"
 )
 
-func NewTemperatureTransition(degrees int, duration int, brightness int) string {
-	if degrees < 1700 || degrees > 6500 {
-		log.Fatalln("The degrees to set the color temperature to (1700-6500)")
-	}
-	if brightness < 1 || brightness > 100 {
-		log.Fatalln("The color saturation to transition to (1-100)")
-	}
-	if duration < 50 {
-		log.Fatalln("duration minimum 50")
-	}
+type Temperature struct {
+	degrees int
+	duration int
+	brightness int
+	mode int
+}
 
-	mode := strconv.Itoa(2)
-	value := strconv.Itoa(degrees)
+func NewTemperatureTransition(degrees int, duration int, brightness int) *Temperature {
+	return &Temperature{
+		degrees:    utils.GetDegreesValue(degrees),
+		duration:   utils.GetDurationValue(duration),
+		brightness: utils.GetBrightnessValue(brightness),
+		mode:       2,
+	}
+}
 
-	return fmt.Sprintf("%s,%s,%s,%s", strconv.Itoa(duration), mode, value, strconv.Itoa(brightness))
+func (t *Temperature) AsYeelightParams() string {
+	return fmt.Sprintf("%s,%s,%s,%s", strconv.Itoa(t.duration), strconv.Itoa(t.mode), strconv.Itoa(t.degrees), strconv.Itoa(t.brightness))
+}
+
+func (t *Temperature) ChangeDuration(duration int) {
+	t.duration = utils.GetDurationValue(duration)
 }

@@ -1,18 +1,25 @@
 package transitions
 
-func Police() []string {
+type Transition interface {
+	AsYeelightParams() string
+	ChangeDuration(d int)
+}
+
+func Police() []Transition {
 	duration := 300
 	brightness := 100
-	return []string {
+	return []Transition {
 		NewRGBTransition(Red, duration, brightness),
 		NewRGBTransition(Blue, duration, brightness),
 	}
 }
 
-func Police2() []string {
-	duration := 200
+func Police2() []Transition {
+	duration := 100
 	brightness := 100
-	return []string {
+	return []Transition {
+		NewRGBTransition(Red, duration, brightness),
+		NewRGBTransition(Red, duration, 1),
 		NewRGBTransition(Red, duration, brightness),
 		NewRGBTransition(Red, duration, 1),
 		NewRGBTransition(Red, duration, brightness),
@@ -20,14 +27,16 @@ func Police2() []string {
 		NewRGBTransition(Blue, duration, brightness),
 		NewRGBTransition(Blue, duration, 1),
 		NewRGBTransition(Blue, duration, brightness),
+		NewRGBTransition(Blue, duration, 1),
+		NewRGBTransition(Blue, duration, brightness),
 		NewSleepTransition(duration),
 	}
 }
 
-func StrobeColor() []string {
+func StrobeColor() []Transition {
 	duration := 50
 	brightness := 100
-	return []string {
+	return []Transition {
 		NewHSVTransition(140, 100, duration, brightness),
 		NewHSVTransition(60, 100, duration, brightness),
 		NewHSVTransition(330, 100, duration, brightness),
@@ -37,11 +46,11 @@ func StrobeColor() []string {
 	}
 }
 
-func Alarm() []string {
+func Alarm() []Transition {
 	duration := 250
 	brightness := 100
 
-	return []string{
+	return []Transition{
 		NewHSVTransition(0, 100, duration, brightness),
 		NewHSVTransition(0, 100, duration, 60),
 	}

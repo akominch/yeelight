@@ -1,6 +1,7 @@
 package yeelight
 
 import (
+	t "github.com/akominch/yeelight/transitions"
 	"strings"
 )
 
@@ -15,10 +16,10 @@ const (
 type Flow struct {
 	count int
 	action Action
-	transitions []string
+	transitions []t.Transition
 }
 
-func NewFlow(count int, action Action, transitions []string) *Flow {
+func NewFlow(count int, action Action, transitions []t.Transition) *Flow {
 	return &Flow{
 		count: count,
 		action: action,
@@ -28,7 +29,15 @@ func NewFlow(count int, action Action, transitions []string) *Flow {
 
 func (flow *Flow) AsStartParams() []interface{} {
 	count := flow.count * len(flow.transitions)
-	expr := strings.Join(flow.transitions, ",")
+
+	var strTransitions []string
+
+	for _, t := range flow.transitions {
+		str := t.AsYeelightParams()
+		strTransitions = append(strTransitions, str)
+	}
+
+	expr := strings.Join(strTransitions, ",")
 
 	return []interface{}{count, flow.action, expr}
 }

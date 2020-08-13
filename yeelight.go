@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	c "github.com/akominch/yeelight/color"
+	"github.com/akominch/yeelight/utils"
 	"image/color"
 	"log"
 	"net"
@@ -180,15 +182,12 @@ func (y *Yeelight) EnsureOn() bool {
 }
 
 func (y *Yeelight) SetBrightness(brightness int) (*CommandResult, error) {
-	if !checkBrightnessValue(brightness) {
-		log.Fatalln("The brightness value to set (1-100)")
-	}
 	y.EnsureOn()
-	return y.ExecuteCommand("set_bright", brightness, y.effect)
+	return y.ExecuteCommand("set_bright", utils.GetBrightnessValue(brightness), y.effect)
 }
 
 func (y *Yeelight) SetRGB(rgba color.RGBA) (*CommandResult, error) {
-	value := RGBToYeelight(rgba)
+	value := c.RGBToYeelight(rgba)
 	y.EnsureOn()
 	return y.ExecuteCommand("set_rgb", value, y.effect)
 }
