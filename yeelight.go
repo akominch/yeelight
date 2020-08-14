@@ -164,14 +164,8 @@ func (y *Bulb) TurnOff() (*CommandResult, error) {
 }
 
 func (y *Bulb) EnsureOn() bool {
-	res, err := y.GetProps([]string{"power"})
-	if err != nil {
-		log.Println("Error get bulb power status")
-		return false
-	}
-	power := res.Result["power"]
-	if power != "on" {
-		_, err = y.TurnOn()
+	if !y.IsOn() {
+		_, err := y.TurnOn()
 		if err != nil {
 			return true
 		}
@@ -179,6 +173,17 @@ func (y *Bulb) EnsureOn() bool {
 	}
 
 	return true
+}
+
+func (y *Bulb) IsOn() bool {
+	res, err := y.GetProps([]string{"power"})
+	if err != nil {
+		log.Println("Error get bulb power status")
+		return false
+	}
+	power := res.Result["power"]
+
+	return power == "on"
 }
 
 func (y *Bulb) SetBrightness(brightness int) (*CommandResult, error) {
