@@ -71,26 +71,26 @@ type (
 	}
 )
 
-//Yeelight represents device
-type YeelightConfig struct {
+//Bulb represents device
+type BulbConfig struct {
 	Ip     string
 	Effect EffectType
 }
 
-//Yeelight represents device
-type Yeelight struct {
+//Bulb represents device
+type Bulb struct {
 	ip     string
 	addr   string
 	effect EffectType
 	cmdId  int
 }
 
-func New(config YeelightConfig) *Yeelight {
+func New(config BulbConfig) *Bulb {
 	if config.Ip == "" {
 		log.Fatalln("Please, add bulb ip to yeelight config")
 	}
 
-	y := &Yeelight{
+	y := &Bulb{
 		ip:    config.Ip,
 		addr:  fmt.Sprintf("%s:55443", config.Ip),
 		cmdId: 0,
@@ -106,7 +106,7 @@ func New(config YeelightConfig) *Yeelight {
 }
 
 //Discover discovers device in local network via ssdp
-func Discover() (*Yeelight, error) {
+func Discover() (*Bulb, error) {
 	var err error
 
 	ssdp, _ := net.ResolveUDPAddr("udp4", ssdpAddr)
@@ -124,10 +124,10 @@ func Discover() (*Yeelight, error) {
 	addr := parseAddr(string(rs))
 	fmt.Printf("Device with ip %s found\n", addr)
 
-	return New(YeelightConfig{Ip: addr}), nil
+	return New(BulbConfig{Ip: addr}), nil
 }
 
-func (y *Yeelight) Discover() (*YeelightParams, error) {
+func (y *Bulb) Discover() (*YeelightParams, error) {
 	var err error
 
 	addr := fmt.Sprintf("%s:1982", y.ip)
@@ -151,19 +151,19 @@ func (y *Yeelight) Discover() (*YeelightParams, error) {
 	return params, nil
 }
 
-func (y *Yeelight) TurnOn() (*CommandResult, error) {
+func (y *Bulb) TurnOn() (*CommandResult, error) {
 	return y.ExecuteCommand("set_power", "on")
 }
 
-func (y *Yeelight) TurnOnWithParams(mode Mode, duration int) (*CommandResult, error) {
+func (y *Bulb) TurnOnWithParams(mode Mode, duration int) (*CommandResult, error) {
 	return y.ExecuteCommand("set_power", "on", y.effect, duration, mode)
 }
 
-func (y *Yeelight) TurnOff() (*CommandResult, error) {
+func (y *Bulb) TurnOff() (*CommandResult, error) {
 	return y.ExecuteCommand("set_power", "off")
 }
 
-func (y *Yeelight) EnsureOn() bool {
+func (y *Bulb) EnsureOn() bool {
 	res, err := y.GetProps([]string{"power"})
 	if err != nil {
 		log.Println("Error get bulb power status")
@@ -181,23 +181,23 @@ func (y *Yeelight) EnsureOn() bool {
 	return true
 }
 
-func (y *Yeelight) SetBrightness(brightness int) (*CommandResult, error) {
+func (y *Bulb) SetBrightness(brightness int) (*CommandResult, error) {
 	y.EnsureOn()
 	return y.ExecuteCommand("set_bright", utils.GetBrightnessValue(brightness), y.effect)
 }
 
-func (y *Yeelight) SetRGB(rgba color.RGBA) (*CommandResult, error) {
+func (y *Bulb) SetRGB(rgba color.RGBA) (*CommandResult, error) {
 	value := c.RGBToYeelight(rgba)
 	y.EnsureOn()
 	return y.ExecuteCommand("set_rgb", value, y.effect)
 }
 
-func (y *Yeelight) SetHSV(hue int, saturation int) (*CommandResult, error) {
+func (y *Bulb) SetHSV(hue int, saturation int) (*CommandResult, error) {
 	y.EnsureOn()
 	return y.ExecuteCommand("set_rgb", hue, saturation, y.effect)
 }
 
-func (y *Yeelight) SetBrightnessWithDuration(brightness int, duration int) (*CommandResult, error) {
+func (y *Bulb) SetBrightnessWithDuration(brightness int, duration int) (*CommandResult, error) {
 	if !checkBrightnessValue(brightness) {
 		log.Fatalln("The brightness value to set (1-100)")
 	}
@@ -205,17 +205,17 @@ func (y *Yeelight) SetBrightnessWithDuration(brightness int, duration int) (*Com
 	return y.ExecuteCommand("set_bright", brightness, y.effect, duration)
 }
 
-func (y *Yeelight) StartFlow(flow *Flow) (*CommandResult, error) {
+func (y *Bulb) StartFlow(flow *Flow) (*CommandResult, error) {
 	y.EnsureOn()
 	params := flow.AsStartParams()
 	return y.ExecuteCommand("start_cf", params)
 }
 
-func (y *Yeelight) StopFlow() (*CommandResult, error) {
+func (y *Bulb) StopFlow() (*CommandResult, error) {
 	return y.ExecuteCommand("stop_cf", "")
 }
 
-func (y *Yeelight) GetProps(props []string) (*PropsResult, error) {
+func (y *Bulb) GetProps(props []string) (*PropsResult, error) {
 	res, err := y.ExecuteCommand("get_prop", props)
 	if err != nil {
 		return nil, err
@@ -231,12 +231,12 @@ func (y *Yeelight) GetProps(props []string) (*PropsResult, error) {
 	return &PropsResult{ID: res.ID, Error: res.Error, Result: propsMap}, nil
 }
 
-func (y *Yeelight) SetName(name string) (*CommandResult, error) {
+func (y *Bulb) SetName(name string) (*CommandResult, error) {
 	return y.ExecuteCommand("set_name", name)
 }
 
 // Listen connects to device and listens for NOTIFICATION events
-func (y *Yeelight) Listen() (<-chan *Notification, chan<- struct{}, error) {
+func (y *Bulb) Listen() (<-chan *Notification, chan<- struct{}, error) {
 	var err error
 	notifCh := make(chan *Notification)
 	done := make(chan struct{}, 1)

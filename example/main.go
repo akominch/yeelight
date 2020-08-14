@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	config := yeelight.YeelightConfig{
+	config := yeelight.BulbConfig{
 		Ip: "192.168.100.24",
 		Effect: yeelight.Smooth,
 	}

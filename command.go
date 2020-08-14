@@ -9,25 +9,25 @@ import (
 	"time"
 )
 
-//Command represents COMMAND request to Yeelight device
+//Command represents COMMAND request to Bulb device
 type Command struct {
 	ID     int           `json:"id"`
 	Method string        `json:"method"`
 	Params []interface{} `json:"params"`
 }
 
-// CommandResult represents response from Yeelight device
+// CommandResult represents response from Bulb device
 type CommandResult struct {
 	ID     int           `json:"id"`
 	Result []interface{} `json:"result,omitempty"`
 	Error  *Error        `json:"error,omitempty"`
 }
 
-func (y *Yeelight) ExecuteCommand(name string, params ...interface{}) (*CommandResult, error) {
+func (y *Bulb) ExecuteCommand(name string, params ...interface{}) (*CommandResult, error) {
 	return y.execute(y.newCommand(name, params))
 }
 
-func (y *Yeelight) newCommand(name string, params []interface{}) *Command {
+func (y *Bulb) newCommand(name string, params []interface{}) *Command {
 	if len(params) > 0 {
 		switch v := params[0].(type) {
 		case []interface{}:
@@ -49,7 +49,7 @@ func (y *Yeelight) newCommand(name string, params []interface{}) *Command {
 	}
 }
 
-func (y *Yeelight) execute(cmd *Command) (*CommandResult, error) {
+func (y *Bulb) execute(cmd *Command) (*CommandResult, error) {
 	conn, err := net.Dial("tcp", y.addr)
 	if nil != err {
 		return nil, fmt.Errorf("cannot open connection to %s. %s", y.addr, err)
@@ -77,7 +77,7 @@ func (y *Yeelight) execute(cmd *Command) (*CommandResult, error) {
 	return &rs, nil
 }
 
-func (y *Yeelight) getCmdId() int {
+func (y *Bulb) getCmdId() int {
 	if y.cmdId == math.MaxInt32 {
 		y.cmdId = 0
 	}
