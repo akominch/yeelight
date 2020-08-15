@@ -163,42 +163,50 @@ func (y *Bulb) TurnOff() (*CommandResult, error) {
 	return y.ExecuteCommand("set_power", "off")
 }
 
-func (y *Bulb) EnsureOn() bool {
-	if !y.IsOn() {
+func (y *Bulb) EnsureOn() error {
+	isOn, err := y.IsOn()
+	if err != nil {
+		return err
+	}
+	if !isOn {
 		_, err := y.TurnOn()
 		if err != nil {
-			return true
+			return err
 		}
-		return false
 	}
 
-	return true
+	return nil
 }
 
-func (y *Bulb) IsOn() bool {
+func (y *Bulb) IsOn() (bool, error) {
 	res, err := y.GetProps([]string{"power"})
 	if err != nil {
-		log.Println("Error get bulb power status")
-		return false
+		return false, err
 	}
 	power := res.Result["power"]
 
-	return power == "on"
+	return power == "on", nil
 }
 
 func (y *Bulb) SetBrightness(brightness int) (*CommandResult, error) {
-	y.EnsureOn()
+	if err := y.EnsureOn(); err != nil {
+		return nil, err
+	}
 	return y.ExecuteCommand("set_bright", utils.GetBrightnessValue(brightness), y.effect)
 }
 
 func (y *Bulb) SetRGB(rgba color.RGBA) (*CommandResult, error) {
 	value := c.RGBToYeelight(rgba)
-	y.EnsureOn()
+	if err := y.EnsureOn(); err != nil {
+		return nil, err
+	}
 	return y.ExecuteCommand("set_rgb", value, y.effect)
 }
 
 func (y *Bulb) SetHSV(hue int, saturation int) (*CommandResult, error) {
-	y.EnsureOn()
+	if err := y.EnsureOn(); err != nil {
+		return nil, err
+	}
 	return y.ExecuteCommand("set_rgb", hue, saturation, y.effect)
 }
 
@@ -206,12 +214,16 @@ func (y *Bulb) SetBrightnessWithDuration(brightness int, duration int) (*Command
 	if !checkBrightnessValue(brightness) {
 		log.Fatalln("The brightness value to set (1-100)")
 	}
-	y.EnsureOn()
+	if err := y.EnsureOn(); err != nil {
+		return nil, err
+	}
 	return y.ExecuteCommand("set_bright", brightness, y.effect, duration)
 }
 
 func (y *Bulb) StartFlow(flow *Flow) (*CommandResult, error) {
-	y.EnsureOn()
+	if err := y.EnsureOn(); err != nil {
+		return nil, err
+	}
 	params := flow.AsStartParams()
 	return y.ExecuteCommand("start_cf", params)
 }
